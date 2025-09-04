@@ -1,0 +1,39 @@
+services:
+  mariadb:
+    container_name: mariadb
+    build: ./requirements/mariadb
+    init: true
+    restart: always
+    env_file:
+      - .env
+    secrets:
+      - db_root_password
+      - db_user_password
+    volumes:
+      - mariadb:/var/lib/mysql
+    networks:
+      - inception
+    healthcheck:
+      test: ["CMD-SHELL", 'PASS="$(cat /run/secrets/db_user_password 2>/dev/null)"; mysql -S /run/mysqld/mysqld.sock -u"$MYSQL_USER" -p"$$PASS" -e "USE \`$MYSQL_DATABASE\`; SELECT 1;" >/dev/null 2>&1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+
+secrets:
+  db_root_password:
+    file: ./secrets/db_root_password.txt
+  db_user_password:
+    file: ./secrets/db_user_password.txt
+
+volumes:
+  mariadb:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HOME}/data/mariadb
+
+networks:
+  inception:
+    driver: bridge

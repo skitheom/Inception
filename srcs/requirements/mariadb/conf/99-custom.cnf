@@ -1,0 +1,17 @@
+[server]
+socket=/run/mysqld/mysqld.sock
+
+[mysqld]
+user=mysql
+datadir=/var/lib/mysql
+socket=/run/mysqld/mysqld.sock
+pid-file=/run/mysqld/mysqld.pid
+
+bind-address=0.0.0.0
+
+# safe & sane defaults
+skip-name-resolve
+character-set-server=utf8mb4
+collation-server=utf8mb4_general_ci
+
+expire_logs_days=10
