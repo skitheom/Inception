@@ -1,12 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
-# secrets -> 環境変数
+# secrets -> env
 if [ -z "${MYSQL_ROOT_PASSWORD:-}" ] && [ -f /run/secrets/db_root_password ]; then
   MYSQL_ROOT_PASSWORD="$(cat /run/secrets/db_root_password)"
+  echo "MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD"
 fi
 if [ -z "${MYSQL_PASSWORD:-}" ] && [ -f /run/secrets/db_user_password ]; then
   MYSQL_PASSWORD="$(cat /run/secrets/db_user_password)"
+  echo "MYSQL_PASSWORD: $MYSQL_PASSWORD"
 fi
 
 DATADIR=${DATADIR:-/var/lib/mysql}
