@@ -24,19 +24,19 @@ setup_dirs:
 build: setup_env setup_dirs
 	@$(COMPOSE) up -d --build
 
-up:
+up: setup_env setup_dirs
 	@$(COMPOSE) up -d --remove-orphans
 
 down:
 	@$(COMPOSE) down
 
-re: down build
+re: fclean all
 
 clean: down
 	@echo "🗑️  Removing named Docker volumes..."
 	@docker volume rm -f $(MARIADB_VOLUME) $(WORDPRESS_VOLUME) || true
 	@echo "🧹 Cleaning data directories..."
-	@rm -rf "$(WORDPRESS_DATA_DIR)" "$(MARIADB_DATA_DIR)"
+	@sudo rm -rf "$(WORDPRESS_DATA_DIR)" "$(MARIADB_DATA_DIR)"
 	@echo "🧼 Pruning dangling networks/volumes..."
 	@docker network prune --force
 	@docker volume prune --force
@@ -44,6 +44,7 @@ clean: down
 fclean: clean
 	@echo "🔥 Removing built images..."
 	@docker rmi -f $(MARIADB_IMAGE) $(WORDPRESS_IMAGE) $(NGINX_IMAGE) || true
+	# @docker network prune --force
 
 status:
 	@$(COMPOSE) ps
