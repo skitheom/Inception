@@ -24,6 +24,8 @@ services:
   wordpress:
     container_name: wordpress
     build: ./requirements/wordpress
+    init: true
+    restart: always
     env_file:
       - .env
     secrets:
