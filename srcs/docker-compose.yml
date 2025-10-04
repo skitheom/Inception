@@ -1,3 +1,4 @@
+name: inception
 services:
   mariadb:
     container_name: mariadb
@@ -12,19 +13,56 @@ services:
     volumes:
       - mariadb:/var/lib/mysql
     networks:
-      - inception
+      - docker-network
     healthcheck:
       test: ["CMD-SHELL", 'PASS="$(cat /run/secrets/db_user_password 2>/dev/null)"; mysql -S /run/mysqld/mysqld.sock -u"$MYSQL_USER" -p"$$PASS" -e "USE \`$MYSQL_DATABASE\`; SELECT 1;" >/dev/null 2>&1']
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 25s
+  
+  wordpress:
+    container_name: wordpress
+    build: ./requirements/wordpress
+    env_file:
+      - .env
+    secrets:
+      - db_user_password
+      - wp_admin_password
+      - wp_author_password
+    depends_on:
+      - mariadb
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - docker-network
+
+  nginx:
+    container_name: nginx
+    build: ./requirements/nginx
+    init: true
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - wordpress:/var/www/html  
+    ports:
+      - "443:443"    
+    networks:
+      - docker-network
+    depends_on:
+      - wordpress
+      - mariadb
 
 secrets:
   db_root_password:
-    file: ./secrets/db_root_password.txt
+    file: ../secrets/db_root_password.txt
   db_user_password:
-    file: ./secrets/db_user_password.txt
+    file: ../secrets/db_user_password.txt
+  wp_admin_password:
+    file: ../secrets/wp_admin_password.txt
+  wp_author_password:
+    file: ../secrets/wp_author_password.txt
 
 volumes:
   mariadb:
@@ -33,7 +71,13 @@ volumes:
       type: none
       o: bind
       device: ${HOME}/data/mariadb
+  wordpress:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HOME}/data/wordpress
 
 networks:
-  inception:
+  docker-network:
     driver: bridge
